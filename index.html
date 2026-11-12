@@ -250,7 +250,7 @@ const CFG={
 const MODELS=[
  {n:"Беседка ЛОФТ",opts:[["4×3 м",245000],["5×3 м",285000],["6×3 м",340000]],mat:"",photo:"work-4.jpg"},
  {n:"ЛОФТ ТЕРРАСА",opts:[["4×3 м",370000],["5×3 м",440000],["6×3 м",540000]],mat:"",photo:"work-2.jpg"},
- {n:"Хоз пристрой",size:"",mat:"",photo:"work-5.jpg"}
+ {n:"Doble",opts:[["6×4 м",700000]],mat:"",photo:"doble.jpg"}
 ];
 /* ================================================ */
 const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
@@ -259,7 +259,7 @@ const slot=(src,label,alt,cls="")=>`<div class="ph ${cls}" data-label="${esc(lab
 const fmt=n=>n.toLocaleString("ru-RU")+" ₽";
 $("#grid").innerHTML=MODELS.map((m,i)=>{const o=m.opts;return `<article class="card">${slot(m.photo,"Фото: images/"+m.photo,m.n+" — металлическая беседка")}
  <div class="body"><h3>${esc(m.n)}</h3><ul>
- <li>Размер: ${o?`<select class="sz" data-i="${i}" aria-label="Размер">${o.map((x,j)=>`<option value="${j}">${x[0]}</option>`).join("")}</select>`:"уточняйте"}</li>
+ <li>Размер: ${o&&o.length<2?o[0][0]:o?`<select class="sz" data-i="${i}" aria-label="Размер">${o.map((x,j)=>`<option value="${j}">${x[0]}</option>`).join("")}</select>`:"уточняйте"}</li>
  ${m.mat?`<li>Материалы: ${esc(m.mat)}</li>`:""}</ul>
  <div class="price">${o?fmt(o[0][1]):"Цена по запросу"}</div>
  <a class="btn sm" href="#contacts" data-model="${esc(o?m.n+", "+o[0][0]:m.n)}">Узнать стоимость</a></div></article>`}).join("");
