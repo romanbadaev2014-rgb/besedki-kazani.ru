@@ -53,6 +53,7 @@ nav a.tel:hover{background:#fff;color:var(--olive-d)}
 /* image slots */
 .ph{position:relative;background:linear-gradient(135deg,var(--beige),#cfc8ae);overflow:hidden;display:flex;align-items:center;justify-content:center;text-align:center}
 .ph::after{content:attr(data-label);position:absolute;padding:14px;font-size:.82rem;color:#6f705f}
+.cnt{position:absolute;right:10px;bottom:10px;z-index:2;background:rgba(30,32,26,.7);color:#fff;font-size:.75rem;padding:4px 10px;pointer-events:none}
 .ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;cursor:zoom-in}
 /* hero */
 .hero{position:relative;min-height:100svh;display:flex;align-items:flex-end;color:#fff;padding:0}
@@ -88,6 +89,7 @@ select.sz{width:auto;padding:5px 10px;margin-left:4px;font-size:.9rem}
 .checks li::before{content:"";position:absolute;left:0;top:14px;width:12px;height:12px;border-radius:50%;background:var(--green)}
 .minis{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:12px}
 .minis .ph{aspect-ratio:4/3;border-radius:10px}
+.minis .wide{grid-column:span 2;aspect-ratio:16/10}
 /* works */
 #works{background:var(--graphite);color:var(--milk)}
 #works .lead{color:#bdbfae}
@@ -179,17 +181,18 @@ footer{background:var(--graphite);color:#a9ab9a;padding:28px 0;font-size:.85rem}
   <ul class="checks">
    <li>Резка металла на лазерном станке — точность до 0,001 мм</li>
    <li>Гарантия</li>
-   <li>Срок изготовленя 14 дней</li>
+   <li>Контроль качества на этапах изготовления</li>
    <li>Индивидуальное изготовление и дизайн-проект под ваш участок</li>
-   <li>Сборка беседки на участке за 2 дня</li>
+   <li>Сборка беседки на участке — 2 дня</li>
    <li>Прямая работа с производителем</li>
   </ul>
  </div>
  <div>
-  <div class="ph" data-label="Фото: images/work-5.jpg"><img class="z" src="images/work-5.jpg" alt="Производство металлических беседок в Казани" loading="lazy" onerror="this.remove()"></div>
+  <div class="ph" style="aspect-ratio:4/5" data-label="Фото: images/production-1.jpg"><img class="z" src="images/production-1.jpg" alt="Сварной металлический каркас беседки в цеху" loading="lazy" onerror="this.remove()"></div>
   <div class="minis">
+   <div class="ph wide" data-label="Фото: images/laser.jpg"><img class="z" src="images/laser.jpg" alt="Лазерная резка металла" loading="lazy" onerror="this.remove()"></div>
    <div class="ph" data-label="work-6"><img class="z" src="images/work-6.jpg" alt="Окраска и отделка беседки" loading="lazy" onerror="this.remove()"></div>
-   <div class="ph" data-label="work-3"><img class="z" src="images/work-3.jpg" alt="Металлический каркас беседки" loading="lazy" onerror="this.remove()"></div>
+   <div class="ph" data-label="work-5"><img class="z" src="images/work-5.jpg" alt="Монтаж беседки на участке" loading="lazy" onerror="this.remove()"></div>
   </div>
  </div>
 </div></section>
@@ -248,8 +251,8 @@ const CFG={
 };
 /* Модели: photo — файл в папке images/. opts — размеры и цены для выпадающего списка; без opts показывается «Цена по запросу» */
 const MODELS=[
- {n:"Беседка ЛОФТ",opts:[["4×3 м",245000],["5×3 м",285000],["6×3 м",340000]],mat:"",photo:"work-4.jpg"},
- {n:"ЛОФТ ТЕРРАСА",opts:[["4×3 м",370000],["5×3 м",440000],["6×3 м",540000]],mat:"",photo:"work-2.jpg"},
+ {n:"Беседка ЛОФТ",opts:[["4×3 м",245000],["5×3 м",285000],["6×3 м",340000]],mat:"",photo:"loft-1.jpg",more:["loft-2.jpg","loft-3.jpg","loft-4.jpg"]},
+ {n:"ЛОФТ ТЕРРАСА",opts:[["4×3 м",370000],["5×3 м",440000],["6×3 м",540000]],mat:"",photo:"terrace-1.jpg",more:["terrace-2.jpg"]},
  {n:"Doble",opts:[["6×4 м",700000]],mat:"",photo:"doble.jpg"}
 ];
 /* ================================================ */
@@ -257,7 +260,7 @@ const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelecto
 const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const slot=(src,label,alt,cls="")=>`<div class="ph ${cls}" data-label="${esc(label)}"><img class="z" src="images/${src}" alt="${esc(alt)}" loading="lazy" onerror="this.remove()"></div>`;
 const fmt=n=>n.toLocaleString("ru-RU")+" ₽";
-$("#grid").innerHTML=MODELS.map((m,i)=>{const o=m.opts;return `<article class="card">${slot(m.photo,"Фото: images/"+m.photo,m.n+" — металлическая беседка")}
+$("#grid").innerHTML=MODELS.map((m,i)=>{const o=m.opts;return `<article class="card">${slot(m.photo,"Фото: images/"+m.photo,m.n+" — металлическая беседка").replace(/<\/div>$/,(m.more||[]).map(f=>`<img class="z" src="images/${f}" alt="${esc(m.n)} — фото" hidden>`).join("")+(m.more?`<span class="cnt">+${m.more.length} фото</span>`:"")+"</div>")}
  <div class="body"><h3>${esc(m.n)}</h3><ul>
  <li>Размер: ${o&&o.length<2?o[0][0]:o?`<select class="sz" data-i="${i}" aria-label="Размер">${o.map((x,j)=>`<option value="${j}">${x[0]}</option>`).join("")}</select>`:"уточняйте"}</li>
  ${m.mat?`<li>Материалы: ${esc(m.mat)}</li>`:""}</ul>
@@ -293,7 +296,7 @@ $("#y").textContent=new Date().getFullYear();
 const lb=$("#lb"),lbi=$("img",lb);let list=[],cur=0;
 function show(i){cur=(i+list.length)%list.length;lbi.src=list[cur].src;lbi.alt=list[cur].alt}
 document.addEventListener("click",e=>{const im=e.target.closest(".ph img.z");if(!im)return;
- list=$$(".ph img.z");cur=list.indexOf(im);show(cur);lb.classList.add("on")});
+ const card=im.closest(".card");list=card?$$("img.z",card):$$(".ph img.z").filter(x=>!x.closest(".card"));cur=list.indexOf(im);show(cur);lb.classList.add("on")});
 $(".x",lb).onclick=()=>lb.classList.remove("on");
 $(".p",lb).onclick=()=>show(cur-1);$(".n",lb).onclick=()=>show(cur+1);
 lb.onclick=e=>{if(e.target===lb)lb.classList.remove("on")};
