@@ -296,7 +296,7 @@ $("#model").innerHTML="<option>Пока не выбрал(а)</option>"+MODELS.f
 /* контакты */
 const tel=CFG.phone?"tel:"+CFG.phone:"#contacts";
 $$("[data-tel]").forEach(a=>a.href=tel);
-if(CFG.phone)$("[data-phone-text]").forEach(e=>e.textContent=CFG.phoneView||CFG.phone);
+if(CFG.phone)$$("[data-phone-text]").forEach(e=>e.textContent=CFG.phoneView||CFG.phone);
 $("[data-tel]").forEach(a=>a.addEventListener("click",()=>reachMetrikaGoal("phone_click")));
 $("[data-wa]").href=CFG.whatsapp?"https://wa.me/"+CFG.whatsapp:"#contacts";
 $("[data-vk]").href=CFG.vk;
