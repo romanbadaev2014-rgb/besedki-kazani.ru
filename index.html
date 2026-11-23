@@ -1,8 +1,18 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
+<!-- Yandex.Metrika counter -->
+<script type="text/javascript">
+    (function(m,e,t,r,i,k,a){
+        m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+        m[i].l=1*new Date();
+        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=114623889', 'ym');
+
+    ym(114623889, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
 </script>
-<noscript><div><img src="https://mc.yandex.ru/watch/114397568" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+<noscript><div><img src="https://mc.yandex.ru/watch/114623889" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
 <!-- /Yandex.Metrika counter -->
  <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -258,6 +268,9 @@ footer{background:var(--graphite);color:#a9ab9a;padding:28px 0;font-size:.85rem}
 
 <script>
 /* ===== НАСТРОЙКИ: заполните своими данными ===== */
+function reachMetrikaGoal(goal){
+ if(typeof window.ym==="function")window.ym(114623889,"reachGoal",goal);
+}
 const CFG={
  phone:"+79872652595",
  phoneView:"+7 987 265-25-95",
@@ -291,6 +304,7 @@ $("#model").innerHTML="<option>Пока не выбрал(а)</option>"+MODELS.f
 const tel=CFG.phone?"tel:"+CFG.phone:"#contacts";
 $$("[data-tel]").forEach(a=>a.href=tel);
 if(CFG.phone)$$("[data-phone-text]").forEach(e=>e.textContent=CFG.phoneView||CFG.phone);
+$$("[data-tel]").forEach(a=>a.addEventListener("click",()=>reachMetrikaGoal("phone_click")));
 $("[data-wa]").href=CFG.whatsapp?"https://wa.me/"+CFG.whatsapp:"#contacts";
 $("[data-vk]").href=CFG.vk;
 $("[data-tg]").href=CFG.telegram?"https://t.me/"+CFG.telegram:"#contacts";
@@ -312,10 +326,11 @@ $("[data-send]").forEach(button=>button.addEventListener("click",()=>{
  const form=$("#f"),err=$("#err");
  const name=form.elements.namedItem("name").value.trim();
  const phone=form.elements.namedItem("phone").value.trim();
- if(!name||phone.replace(/\\D/g,"").length<10){
+ if(!name||phone.replace(/\D/g,"").length<10){
   err.textContent="Укажите имя и корректный номер телефона.";
   return;
  }
+ reachMetrikaGoal(button.dataset.send==="wa"?"whatsapp_click":"telegram_click");
  const message=encodeURIComponent(getFormMessage());
  const url=button.dataset.send==="wa"
   ? "https://wa.me/"+CFG.whatsapp+"?text="+message
@@ -344,6 +359,7 @@ $("#f").addEventListener("submit",async e=>{
   if(!response.ok||!(result.success===true||result.success==="true")){
    throw new Error(result.message||"Сервис не подтвердил отправку.");
   }
+  reachMetrikaGoal("form_email_success");
   form.reset();
   err.textContent="Заявка отправлена. Спасибо! Мы свяжемся с вами.";
  }catch(error){
