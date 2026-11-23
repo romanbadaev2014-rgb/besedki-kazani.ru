@@ -246,9 +246,10 @@ footer{background:var(--graphite);color:#a9ab9a;padding:28px 0;font-size:.85rem}
   <label>Телефон<input name="phone" type="tel" autocomplete="tel" placeholder="+7" required></label>
   <label>Модель<select name="model" id="model"><option>Пока не выбрал(а)</option></select></label>
   <label>Пожелания и размеры<textarea name="msg" rows="3"></textarea></label>
-  <div class="err" id="err"></div>
-  <div class="fb"><button class="btn" type="button" data-send="wa">Отправить в WhatsApp</button><button class="btn tg" type="button" data-send="tg">Отправить в Telegram</button></div>
-  <p class="note">Заявка откроется в мессенджере с готовым текстом — вам останется нажать «Отправить».</p>
+  <input type="text" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px">
+  <div class="err" id="err" role="status" aria-live="polite"></div>
+  <div class="fb"><button class="btn" type="submit" id="send-form">Отправить на email</button><button class="btn" type="button" data-send="wa">WhatsApp</button><button class="btn tg" type="button" data-send="tg">Telegram</button></div>
+  <p class="note">Можно отправить заявку на email или открыть готовое сообщение в WhatsApp/Telegram и нажать «Отправить».</p>
  </form>
 </div></section>
 </main>
@@ -296,16 +297,60 @@ $("[data-tg]").href=CFG.telegram?"https://t.me/"+CFG.telegram:"#contacts";
 /* выбор модели из каталога */
 document.addEventListener("click",e=>{const b=e.target.closest("[data-model]");if(!b)return;const v=b.dataset.model,s=$("#model");
  if([...s.options].some(o=>o.text===v))s.value=v;else if(v.startsWith("Хочу"))$("[name=msg]").value=v;});
-/* отправка */
-function msgText(){const f=$("#f");return `Заявка с сайта besedki-kazani.ru%0AИмя: ${encodeURIComponent(f.name.value)}%0AТелефон: ${encodeURIComponent(f.phone.value)}%0AМодель: ${encodeURIComponent(f.model.value)}%0AПожелания: ${encodeURIComponent(f.msg.value)}`}
-$$("[data-send]").forEach(b=>b.onclick=()=>{
- const f=$("#f"),err=$("#err");
- if(!f.name.value.trim()||f.phone.value.replace(/\D/g,"").length<10){err.textContent="Укажите имя и телефон";return}
- const wa=b.dataset.send=="wa";
- if(wa&&!CFG.whatsapp||!wa&&!CFG.telegram){err.textContent="Контакт ещё не настроен (CFG в index.html)";return}
- err.textContent="";
- if(!wa&&CFG.telegram[0]=="+"){try{navigator.clipboard.writeText(decodeURIComponent(msgText()))}catch(_){}err.textContent="Текст заявки скопирован — вставьте его в чат Telegram";window.open("https://t.me/"+CFG.telegram,"_blank");return}
- window.open(wa?`https://wa.me/${CFG.whatsapp}?text=${msgText()}`:`https://t.me/${CFG.telegram}?text=${msgText()}`,"_blank");
+/* подготовка сообщения и альтернативная отправка через мессенджеры */
+function getFormMessage(){
+ const form=$("#f");
+ return [
+  "Заявка с сайта besedki-kazani.ru",
+  "Имя: "+form.elements.namedItem("name").value.trim(),
+  "Телефон: "+form.elements.namedItem("phone").value.trim(),
+  "Модель: "+form.elements.namedItem("model").value,
+  "Пожелания: "+(form.elements.namedItem("msg").value.trim()||"не указаны")
+ ].join("\n");
+}
+$("[data-send]").forEach(button=>button.addEventListener("click",()=>{
+ const form=$("#f"),err=$("#err");
+ const name=form.elements.namedItem("name").value.trim();
+ const phone=form.elements.namedItem("phone").value.trim();
+ if(!name||phone.replace(/\\D/g,"").length<10){
+  err.textContent="Укажите имя и корректный номер телефона.";
+  return;
+ }
+ const message=encodeURIComponent(getFormMessage());
+ const url=button.dataset.send==="wa"
+  ? "https://wa.me/"+CFG.whatsapp+"?text="+message
+  : "https://t.me/"+CFG.telegram+"?text="+message;
+ window.open(url,"_blank","noopener");
+}));
+/* отправка заявки менеджеру через FormSubmit */
+$("#f").addEventListener("submit",async e=>{
+ e.preventDefault();
+ const form=e.currentTarget,err=$("#err"),button=$("#send-form");
+ const name=form.elements.namedItem("name").value.trim();
+ const phone=form.elements.namedItem("phone").value.trim();
+ if(!name||phone.replace(/\D/g,"").length<10){err.textContent="Укажите имя и корректный номер телефона.";return}
+ err.textContent="Отправляем заявку…";
+ button.disabled=true;
+ const payload=Object.fromEntries(new FormData(form).entries());
+ payload._subject="Новая заявка с сайта besedki-kazani.ru";
+ payload._template="table";
+ try{
+  const response=await fetch("https://formsubmit.co/ajax/mrSadMen@yandex.ru",{
+   method:"POST",
+   headers:{Accept:"application/json","Content-Type":"application/json"},
+   body:JSON.stringify(payload)
+  });
+  const result=await response.json();
+  if(!response.ok||!(result.success===true||result.success==="true")){
+   throw new Error(result.message||"Сервис не подтвердил отправку.");
+  }
+  form.reset();
+  err.textContent="Заявка отправлена. Спасибо! Мы свяжемся с вами.";
+ }catch(error){
+  err.textContent="Не удалось отправить заявку. Попробуйте ещё раз или позвоните нам.";
+ }finally{
+  button.disabled=false;
+ }
 });
 $("#y").textContent=new Date().getFullYear();
 /* просмотр фото */
