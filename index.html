@@ -248,8 +248,8 @@ footer{background:var(--graphite);color:#a9ab9a;padding:28px 0;font-size:.85rem}
   <label>Пожелания и размеры<textarea name="msg" rows="3"></textarea></label>
   <input type="text" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px">
   <div class="err" id="err" role="status" aria-live="polite"></div>
-  <div class="fb"><button class="btn" type="submit" id="send-form">Отправить заявку</button></div>
-  <p class="note">Заявка будет отправлена менеджеру на электронную почту. Обычно мы связываемся по указанному телефону.</p>
+  <div class="fb"><button class="btn" type="submit" id="send-form">Отправить на email</button><button class="btn" type="button" data-send="wa">WhatsApp</button><button class="btn tg" type="button" data-send="tg">Telegram</button></div>
+  <p class="note">Можно отправить заявку на email или открыть готовое сообщение в WhatsApp/Telegram и нажать «Отправить».</p>
  </form>
 </div></section>
 </main>
@@ -297,6 +297,31 @@ $("[data-tg]").href=CFG.telegram?"https://t.me/"+CFG.telegram:"#contacts";
 /* выбор модели из каталога */
 document.addEventListener("click",e=>{const b=e.target.closest("[data-model]");if(!b)return;const v=b.dataset.model,s=$("#model");
  if([...s.options].some(o=>o.text===v))s.value=v;else if(v.startsWith("Хочу"))$("[name=msg]").value=v;});
+/* подготовка сообщения и альтернативная отправка через мессенджеры */
+function getFormMessage(){
+ const form=$("#f");
+ return [
+  "Заявка с сайта besedki-kazani.ru",
+  "Имя: "+form.elements.namedItem("name").value.trim(),
+  "Телефон: "+form.elements.namedItem("phone").value.trim(),
+  "Модель: "+form.elements.namedItem("model").value,
+  "Пожелания: "+(form.elements.namedItem("msg").value.trim()||"не указаны")
+ ].join("\n");
+}
+$("[data-send]").forEach(button=>button.addEventListener("click",()=>{
+ const form=$("#f"),err=$("#err");
+ const name=form.elements.namedItem("name").value.trim();
+ const phone=form.elements.namedItem("phone").value.trim();
+ if(!name||phone.replace(/\\D/g,"").length<10){
+  err.textContent="Укажите имя и корректный номер телефона.";
+  return;
+ }
+ const message=encodeURIComponent(getFormMessage());
+ const url=button.dataset.send==="wa"
+  ? "https://wa.me/"+CFG.whatsapp+"?text="+message
+  : "https://t.me/"+CFG.telegram+"?text="+message;
+ window.open(url,"_blank","noopener");
+}));
 /* отправка заявки менеджеру через FormSubmit */
 $("#f").addEventListener("submit",async e=>{
  e.preventDefault();
@@ -306,14 +331,14 @@ $("#f").addEventListener("submit",async e=>{
  if(!name||phone.replace(/\D/g,"").length<10){err.textContent="Укажите имя и корректный номер телефона.";return}
  err.textContent="Отправляем заявку…";
  button.disabled=true;
- const payload=new FormData(form);
- payload.set("_subject","Новая заявка с сайта besedki-kazani.ru");
- payload.set("_template","table");
+ const payload=Object.fromEntries(new FormData(form).entries());
+ payload._subject="Новая заявка с сайта besedki-kazani.ru";
+ payload._template="table";
  try{
   const response=await fetch("https://formsubmit.co/ajax/mrSadMen@yandex.ru",{
    method:"POST",
-   headers:{Accept:"application/json"},
-   body:payload
+   headers:{Accept:"application/json","Content-Type":"application/json"},
+   body:JSON.stringify(payload)
   });
   const result=await response.json();
   if(!response.ok||!(result.success===true||result.success==="true")){
